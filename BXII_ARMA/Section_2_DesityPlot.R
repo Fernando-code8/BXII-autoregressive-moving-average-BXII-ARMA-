@@ -1,6 +1,20 @@
-#################################################################################
-##################         Gráficos da densidade Burr              #################
-#################################################################################
+################################################################################
+# PAPER: Quantile-based dynamic modeling of asymmetric data: a novel Burr XII
+#        approach for positive continuous random variables
+# SECTION: 2. The Burr XII ARMA model
+# GOAL: Plots pdf - Burr XII distribution.
+# AUTHORS: Fernando Jose Monteiro de Araujo, Renata Rojas Guerra and 
+#          Fernando Arturo Pena-Ramirez
+# LAST UPDATE: May 25, 2024
+################################################################################
+
+
+################################################################################
+##################  Reparametrized Burr XII density plots     ##################
+################################################################################
+
+# pdf of BXII - mu = 0.9 (Figure 1(a))
+
 {
 rm(list = ls())
 c<-5
@@ -53,7 +67,8 @@ curve(f_me,from=fromx, to=tox, add = TRUE, lty=5, type = "l",
 c<-15
 
 curve(f_me,from=fromx, to=tox, add = T, lty=1, type = "l", cex.lab=1.3,
-      ylab = expression("f(y)"),ylim =c(yliminf,ylimsup), col ="purple", lwd = 2.0)
+      ylab = expression("f(y)"),ylim =c(yliminf,ylimsup), col ="purple", 
+      lwd = 2.0)
 
 legend("topright", c(expression(paste(plain(c), " = 5 ")),
                      c(expression(paste(plain(c), " = 8 ")),
@@ -66,9 +81,8 @@ legend("topright", c(expression(paste(plain(c), " = 5 ")),
 dev.off()
 }
 
-#################################################################################
-##################                   Gr?ficos Burr              #################
-#################################################################################
+# pdf of BXII - mu = 0.5 (Figure 1(b))
+
 {
   
 postscript(file = "dens2.eps",width = w1, height = h11,family = "Times")
@@ -106,7 +120,8 @@ curve(f_me,from=fromx, to=tox, add = TRUE, lty=5, type = "l",
 c<-5
 
 curve(f_me,from=fromx, to=tox, add = T, lty=1, type = "l", cex.lab=1.3,
-      ylab = expression("f(y)"),ylim =c(yliminf,ylimsup), col ="purple", lwd = 2.0)
+      ylab = expression("f(y)"),ylim =c(yliminf,ylimsup), col ="purple", 
+      lwd = 2.0)
 
 legend("topright", c(expression(paste(plain(c), " = 0.05 ")),
                      c(expression(paste(plain(c), " = 0.5 ")),

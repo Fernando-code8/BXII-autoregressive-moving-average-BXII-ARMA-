@@ -1,4 +1,16 @@
+################################################################################
+# PAPER: Quantile-based dynamic modeling of asymmetric data: a novel Burr XII
+#        approach for positive continuous random variables
+# SECTION: 6. Applications
+# GOAL: Application of the proposed model to real data
+# AUTHORS: Fernando Jose Monteiro de Araujo, Renata Rojas Guerra and 
+#          Fernando Arturo Pena-Ramirez
+# LAST UPDATE: May 25, 2024
+################################################################################
+
 rm(list=ls()) 
+
+# Packages
 library(readr)
 library(forecast)
 library(tseries)
@@ -18,13 +30,12 @@ source("bxiiarma.fit.r")
 source("bxiiarmaCOV.fit.r")
 source("predict_bxii.R")
 
-
 ################################################################################
-####    Banco Bradesco S.A. (BBD)- volume de negociacao -- ARMA(1,4)      ######
+#########           Banco Bradesco S.A. (BBD)- trading volume         ##########
 ################################################################################
 
-# dataset
-dados<-read_csv("BBD3.csv")
+# Data set
+dados<-read_csv("BBD3-Time series model for finance data.csv")
 attach(dados)
 
 # View(dados)
@@ -50,7 +61,7 @@ dados.ts <- ts(yy,     # random data
 
 y <- dados.ts
 
-# Descriptive analysis
+# Table of descriptive measures (Table 2)
 a<-c(summary(dados.ts,na.rm=T),
      var(dados.ts))
 round(a,4)
@@ -61,6 +72,7 @@ xtable(a,digits = 4)
 w1<-6
 h11<-4
 
+# Serie Plot (Figure 3)
 postscript(file = "plotserie.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 plot(dados.ts,ylab="Volume")
@@ -69,24 +81,25 @@ dev.off()
 w1<-5
 h11<-4
 
+# ACF Plot (Figure 4.a)
 postscript(file = "ACF.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 acf(dados.ts, main="")
 dev.off()  
 
+# PACF Plot (Figure 4.b)
 postscript(file = "PACF.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 pacf(dados.ts, main="")
 dev.off()  
-
   
+# Stationarity of the series
 y <- dados.ts
-
 pp.test(y, alternative ="stationary") 
 kpss.test(dados.ts)
 
 #-------------------------------------------------------------------
-# BXII-ARMA(1,4) model
+# BXII-ARMA(1,4) model                               
 #-------------------------------------------------------------------
 
 # Autoregressive and moving averages
@@ -157,7 +170,6 @@ residq<-BXIIARMA.mod$resid3
 
 # Ljung-box test
 Box.test(residq,lag = 10, type =  "Ljung-Box", fitdf = 0)
-# 0.5321
 
 # accuracy measures BXII_ARMA
 BXII_prev =(dadosh-pred)
@@ -343,8 +355,7 @@ mase_RARMA = sum( abs(RARMA_prev)/(sum(abs(RARMA_prev_1))*(1/(length(RARMA_prev)
 d<-c(AIC.RARMA,BIC.RARMA,HQC.RARMA
      ,mse_RARMA,mape_RARMA,mase_RARMA)
 
-###### models
-
+###### Models (Table 3)
 mod1<-round(coeftest(ARMA.mod)[,-3],4)
 mod2<-round(summary(gARMA.mod)$coefficients[,-3],4)
 mod3<-round(summary(RARMA.mod)$coefficients[,-3],4)
@@ -358,13 +369,15 @@ mod3
 print("BXIIARMA")
 mod4
 
-###### results
+###### Accuracy measures (Table 4 e 5)
 final<-rbind(a,b,d,c)
 row.names(final)<-c("ARMA","gARMA","RARMA","BXIIARMA")
 colnames(final)<-c("AIC","BIC","HQ","MSE","MAPE","MASE")
 round(final,4)
 
-# Graph: BXII-ARMA and RARMA forecast
+
+
+# Graph: BXII-ARMA and RARMA forecast (Figure 6)
 postscript(file = "res_prev_wind2.eps",width = 6, height = 4,family = "Times")
 par(mfrow=c(1,1))
 par(mar=c(2.8, 2.7, 1, 1))
@@ -380,11 +393,11 @@ dev.off()
 
 
 ################################################################################
-####                      WIND SPEED YENAGOA -- ARMA(1,2)                 ######
+####                            WIND SPEED YENAGOA                        ######
 ################################################################################
 
-# dataset
-dados<-read.csv("VENTO.csv",header=T,sep=",")
+# Data set
+dados<-read.csv("Wind_Time series model for meteorological data.csv",header=T,sep=",")
 attach(dados)
 
 # View(dados)
@@ -402,7 +415,7 @@ yy<-dados2/div
 dados.ts<- ts(yy,start = c(2017,1), frequency = 12)
 y <- dados.ts
 
-# Descriptive analysis
+# Table of descriptive measures (Table 6)
 a<-c(summary(dados.ts,na.rm=T),
      var(dados.ts))
 round(a,4)
@@ -410,10 +423,10 @@ a<-as.matrix(a)
 xtable(t(a),digits = 4)
 
 # Initial graphics
-
 w1<-6
 h11<-4
 
+# Serie Plot (Figure 7)
 postscript(file = "plotseriewind.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 plot(dados.ts,ylab="Wind Speed")
@@ -422,18 +435,20 @@ dev.off()
 w1<-5
 h11<-4
 
+# ACF Plot (Figure 8.a)
 postscript(file = "ACF_wind.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 acf(dados.ts,main="")
 dev.off()
 
+# PACF Plot (Figure 8.b)
 postscript(file = "PACF_wind.eps",width = w1, height = h11,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 pacf(dados.ts,main="")
 dev.off()
 
+# Stationarity of the series
 y <- dados.ts
-
 adf.test(y, alternative ="stationary") # não é estacionária
 pp.test(y, alternative ="stationary") # é estacionária
 kpss.test(dados.ts) # é estacionária
@@ -457,10 +472,12 @@ n<-length(dados$YENAGOA)
 p1<-3
 q1<-1:2
 
+# With covariates
+# source("bxiiarmaCOV.fit.r")
 # BXIIARMA.mod <- bxiiarmaCOV.fit(y,ar=p1,
 #                               ma=q1,X = as.matrix(C),X_hat=as.matrix(C_hat),
 #                               h=1,diag=0,tau=0.5)
-source("bxiiarma.fit.r")
+
 
 BXIIARMA.mod <- bxiiarma.fit(y,ar=p1,
                                 ma=q1,h=1,mod=3,resid = 3)
@@ -600,32 +617,6 @@ HQC.gARMA<--2*gARMA.mod$sll+log(log(length(y)))*length(gARMA.mod$coefficients)
 # b
 # i=i+1
 
-# [,1]      [,2]      [,3]
-# [1,] -126.0414 -118.5566 -128.6271
-# [2,] -128.4530 -119.0970 -131.6852
-# [3,] -128.9259 -117.6987 -132.8045
-# [4,] -127.4167 -114.3183 -131.9417
-# [5,] -124.8489 -115.4929 -128.0811
-# [6,] -128.0949 -116.8677 -131.9736
-# [7,] -128.4801 -115.3817 -133.0052
-# [8,] -128.2595 -113.2899 -133.4310
-# [9,] -123.1028 -111.8756 -126.9814
-# [10,] -127.0091 -113.9107 -131.5341
-# [11,] -139.6121 -124.6425 -144.7836#
-# [12,] -125.6647 -108.8239 -131.4827
-# [13,] -122.4690 -109.3706 -126.9940
-# [14,] -125.7678 -110.7982 -130.9393
-# [15,] -124.1165 -107.2757 -129.9344
-# [16,] -124.5220 -105.8100 -130.9863
-# [17,] -115.2745 -109.6609 -117.2138
-# [18,] -121.4262 -113.9414 -124.0119
-# [19,] -129.4127 -120.0567 -132.6449
-# [20,] -129.1277 -117.9005 -133.0063
-# [21,] -124.2337 -118.6201 -126.1730
-# [22,] -126.3827 -118.8979 -128.9685
-# [23,] -124.3713 -115.0153 -127.6035
-# [24,] -124.1166 -112.8894 -127.9952
-
 # best model - gARMA
 gARMA.mod
 gARMA.mod.prev<-predict(gARMA.mod,nnew = h1)
@@ -669,32 +660,6 @@ HQC.RARMA<--2*RARMA.mod$sll+log(log(length(y)))*length(RARMA.mod$coefficients)
 # d
 # i=i+1
 
-# [,1]       [,2]      [,3]
-# [1,] -112.5757 -106.96212 -114.5150
-# [2,] -113.5566 -106.07179 -116.1423
-# [3,] -113.1795 -103.82346 -116.4116
-# [4,] -111.1951  -99.96789 -115.0737
-# [5,] -112.1641 -104.67931 -114.7499
-# [6,] -117.4463 -108.09031 -120.6785
-# [7,] -116.6141 -105.38694 -120.4928
-# [8,] -115.3208 -102.22242 -119.8459
-# [9,] -116.6436 -107.28762 -119.8758
-# [10,] -113.1053 -101.87805 -116.9839
-# [11,] -115.5167 -102.41826 -120.0417
-# [12,] -113.0612  -98.09164 -118.2327
-# [13,] -109.8866  -98.65937 -113.7652
-# [14,] -111.5753  -98.47691 -116.1004
-# [15,] -113.4658  -98.49618 -118.6373
-# [16,] -111.4644  -94.62359 -117.2823
-# [17,] -109.5307 -105.78835 -110.8236
-# [18,] -111.7311 -106.11752 -113.6704
-# [19,] -114.8557 -107.37087 -117.4414
-# [20,] -113.0298 -103.67376 -116.2619
-# [21,] -112.6493 -108.90692 -113.9422
-# [22,] -114.1522 -108.53863 -116.0915
-# [23,] -112.1287 -104.64385 -114.7144
-# [24,] -111.7853 -102.42926 -115.0174
-
 # best model
 RARMA.mod
 RARMA.mod.prev<-predict(RARMA.mod,nnew = h1)
@@ -711,7 +676,7 @@ mase_RARMA = sum( abs(RARMA_prev)/(sum(abs(RARMA_prev_1))*(1/(length(RARMA_prev)
 d<-c(AIC.RARMA,BIC.RARMA,HQC.RARMA
      ,mse_RARMA,mape_RARMA,mase_RARMA)
 
-###### models
+###### Models (Table 7)
 mod1<-round(coeftest(ARMA.mod)[,-3],4)
 mod2<-round(summary(gARMA.mod)$coefficients[,-3],4)
 mod3<-round(summary(RARMA.mod)$coefficients[,-3],4)
@@ -725,13 +690,13 @@ mod3
 print("BXIIARMA")
 mod4
 
-###### results
+###### Accuracy measures (Table 8 e 9)
 final<-rbind(a,b,d,c)
 row.names(final)<-c("ARMA","gARMA","RARMA","BXIIARMA")
 colnames(final)<-c("AIC","BIC","HQ","MSE","MAPE","MASE")
 round(final,4)
 
-# Graph
+# Graph: BXII-ARMA and RARMA forecast (Figure 10)
 postscript(file = "res_prev_wind2.eps",width = 6, height = 4,family = "Times")
 par(mar=c(5,6,4,1)+.1)
 plot(c(BXIIARMA.mod$fitted,previsões),type="l",lty=2,col="red", ylim=c(-0.15,0.4),ylab="Volume",xlab="Times")

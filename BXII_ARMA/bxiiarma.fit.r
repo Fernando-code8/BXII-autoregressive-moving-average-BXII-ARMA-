@@ -1,10 +1,25 @@
-bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid=3,mod=3,
-                        link = "log")
+################################################################################
+# PAPER: Quantile-based dynamic modeling of asymmetric data: a novel Burr XII
+#        approach for positive continuous random variables
+# SECTION: 6. Applications
+# GOAL: Provides functions to fit the BXII-ARMA model
+# AUTHORS: Fernando Jose Monteiro de Araujo, Renata Rojas Guerra and 
+#          Fernando Arturo Pena-Ramirez
+# LAST UPDATE: May 25, 2024
+################################################################################
+
+################################################################################
+#######                 BXII-ARMA MODEL implementation                 #########
+################################################################################
+
+bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,
+                        resid=3,mod=3,link = "log")
 {
   if (min(y) < 0)
     stop("OUT OF SUPPORT!")
   
-  if(is.ts(y)==T)  freq<-frequency(y) else stop("data can be a time-series object")
+  if(is.ts(y)==T)  freq<-frequency(y) 
+  else stop("data can be a time-series object")
   
   z<-c()
   maxit1<-10000
@@ -28,7 +43,8 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   if (any(linktemp == c("log", "sqrt"))){
     stats <- make.link(linktemp)
   }  else {
-      stop(paste(linktemp, "link not available, available links are \"log\" and \"sqrt\""))
+      stop(paste(linktemp, "link not available, available links are \"log\" and 
+                 \"sqrt\""))
     }
   
   link = linktemp 
@@ -54,29 +70,25 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
     names_beta<-c(paste("beta", 1 : ncol(as.matrix(X)), sep = ""))
     Xm <- X[(m+1):n]
     k = 1
-    c<-1 ###
+    c<-1 
   } else {
     k = 0 
     X <- matrix(rep(0,n), nrow = n)
     Xm <- NA
-    c<-1 ###
+    c<-1 
   }}else{
   if(any(is.na(X)) == F){
     names_beta<-c(paste("beta", 1 : ncol(as.matrix(X)), sep = ""))
     Xm <- X[(m+1):n,]
     k = ncol(X)
-    c<-1 ###
+    c<-1
   } else {
     k = 0 
     X <- matrix(rep(0,n), nrow = n)
     Xm <- NA
-    c<-1 ###
+    c<-1
   }}
   
-  # Warning message:
-  #   In if (class(X) == "numeric") { :
-  #       the condition has length > 1 and only the first element will be used
-
   ###FB  recorrences   #
   q_1 <- max(q1, 1)
   R <- matrix(rep(NA, (n-m)*q_1), ncol = q_1)
@@ -92,29 +104,30 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   initial <- rep(0, k+p1+q1+1)
   initial[1 : (k+p1+1)] <- ols
   initial<-c(initial,c)
-  # initial<-c(0,0,1)
-
+  
   loglik <- function(z) 
   {
     alpha <- z[1]
-    if(k==0)  beta = as.matrix(0) else beta = as.matrix(z[2:(k+1)])
+    if(k==0) beta = as.matrix(0) else beta = as.matrix(z[2:(k+1)])
     if(p1==0) {phi = as.matrix(0);ar=1} else phi = as.matrix(z[(k+2):(k+p1+1)]) 
-    if(q1==0) theta = as.matrix(0) else  theta = as.matrix(z[(k+p1+2):(k+p1+q1+1)])
+    if(q1==0) theta = as.matrix(0) else theta = as.matrix(z[(k+p1+2):(k+p1+q1+1)])
     c <- z[p1+q1+2]
     Xbeta <- X%*%beta
     Xbeta_ar <- suppressWarnings(matrix(Xbeta, (n-1), max(p, 1, na.rm = T)))
     
     for(i in (m+1):n)
     {
-      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1), ar] - Xbeta_ar[(i-1), ar])%*%phi + t(theta)%*%error[i-ma]
+      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1), ar] 
+                - Xbeta_ar[(i-1), ar])%*%phi + t(theta)%*%error[i-ma]
       error[i] <- ynew[i] - eta[i] 
     }
     mu <- linkinv(eta[(m+1):n])
     s=1
-    ll <- log((log(1/(1-tau))*c)/(s^(c)*log(1+(mu/s)^c)))+(c-1)*(log(y1))+(log(1-tau)/log(1+(mu/s)^c)-1)*((log(1+(y1/s)^c)))
+    ll <- log((log(1/(1-tau))*c)/(s^(c)*log(1+(mu/s)^c)))+(c-1)*(log(y1))
+          +(log(1-tau)/log(1+(mu/s)^c)-1)*((log(1+(y1/s)^c)))
     sum(ll)
   } 
-  # ______________________________________________________________________________ #
+  # __________________________________________________________________________ #
   escore.bxiiarma <- function(z)
     {
     alpha <- z[1]
@@ -126,7 +139,8 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
     Xbeta_ar <- suppressWarnings(matrix(Xbeta, (n-1), max(p, 1, na.rm = T)))
     for(i in (m+1):n)
       {
-      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1),ar] - Xbeta_ar[(i-1),ar])%*%phi + t(theta)%*%error[i-ma]
+      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1),ar] 
+              - Xbeta_ar[(i-1),ar])%*%phi + t(theta)%*%error[i-ma]
       error[i] <- ynew[i] - eta[i] 
     }
     
@@ -150,7 +164,8 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
     
     mT <- diag(mu.eta(eta[(m+1):n]))
     
-    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))) #loglik/dmu
+    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)
+                                      *(log(1+y1^c)))/log(1+mu^c))) #loglik/dmu
     
     Ualpha <- t(v) %*% mT %*% vh
     Ubeta <- t(rM) %*% mT %*% vh
@@ -158,7 +173,9 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
     Utheta <- t(rR) %*% mT %*% vh
   
     # derivada em relacao a c
-    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))*((((y1^c)*log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
+    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))      
+                  *((((y1^c)*log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)
+                    *log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
     
     Uc <- sum(a)
     
@@ -256,7 +273,7 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   y_prev[1:n] <- z$fitted
   
 
-  # X_prev<- rbind(X,X_hat) #x_hat s?o as covari?veis
+  # X_prev<- rbind(X,X_hat) #x_hat sao as covariaveis
   if(mod==2
     # any(is.na(ar)==T) && any(is.na(ma)==F)
     ){
@@ -275,7 +292,8 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   # Modelo ARMA
   for(i in 1:h1)
   {
-    ynew_prev[n+i] <- alpha + (z$phi%*%ynew_prev[n+i-ar]) + (z$theta%*%errorhat[n+i-ma])
+    ynew_prev[n+i] <- alpha + (z$phi%*%ynew_prev[n+i-ar]) 
+    + (z$theta%*%errorhat[n+i-ma])
     y_prev[n+i] <- linkinv(ynew_prev[n+i])
     errorhat[n+i] <- 0
   }
@@ -301,8 +319,9 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   residc <- z$resid3
   # residuals
   res1 <- y-z$fitted
-  vary <- ( (log(0.5)/log(1-z$fitted^c)) * beta(1+2/c, log(0.5)/log(1-z$fitted^c))
-                      - (log(0.5)/log(1-z$fitted^c) * beta(1+1/c, log(0.5)/log(1-z$fitted^c)))^2 )
+  vary <- ((log(0.5)/log(1-z$fitted^c)) * beta(1+2/c, log(0.5)/log(1-z$fitted^c))
+                      - (log(0.5)/log(1-z$fitted^c) 
+                         * beta(1+1/c, log(0.5)/log(1-z$fitted^c)))^2 )
 
   z$resid1 <- (res1/sqrt(vary))[(m+1):n]
 
@@ -322,13 +341,14 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
   if(resid==2) residc <- z$resid2
   if(resid==3) residc <- z$resid3
 
-  model_presentation <- cbind(round(z$coef,4),round(z$stderror,4),round(z$zstat,4),round(z$pvalues,4))
+  model_presentation <- cbind(round(z$coef,4),round(z$stderror,4),
+                              round(z$zstat,4),round(z$pvalues,4))
   colnames(model_presentation)<-c("Estimate","Std. Error","z value","Pr(>|z|)")
   z$model <- model_presentation
 
   # ###################################################
-  # ######### GRAPHICS ################################
-  # 
+  # ################## GRAPHICS #######################
+  # ###################################################
   if(diag1==0)
   {
 
@@ -336,7 +356,8 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
     print(" ",quote=F)
     print(c("Log-likelihood:",round(z$loglik,4)),quote=F)
     print(c("Number of iterations in BFGS optim:",z$counts),quote=F)
-    print(c("AIC:",round(z$aic,4)," SIC:",round(z$bic,4)," HQ:",round(z$hq,4)),quote=F)
+    print(c("AIC:",round(z$aic,4)," SIC:",round(z$bic,4)," HQ:",round(z$hq,4)),
+          quote=F)
 
     print("Residuals:",quote=F)
     print(summary(residc))
@@ -357,25 +378,25 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
 
     y_prev <- ts(y_prev, start=start(y), frequency=frequency(y))
 
-        # Initial graphics
-        w1<-4
-        h11<-4
+      # Initial graphics
+      w1<-4
+      h11<-4
         
-        postscript(file = "res_indice.eps",width = w1, height = h11,family = "Times")
-        par(mar=c(5,6,4,1)+.1)
-        plot(residc,main=" ",xlab="Index",ylab="Residuals", pch = "+",ylim=c(-4,4))
-        lines(t,rep(-3,n+12),lty=2,col=1)
-        lines(t,rep(3,n+12),lty=2,col=1)
-        lines(t,rep(-2,n+12),lty=3,col=1)
-        lines(t,rep(2,n+12),lty=3,col=1)
-        dev.off()
+      postscript(file = "res_indice.eps",width = w1, height = h11,family = "Times")
+      par(mar=c(5,6,4,1)+.1)
+      plot(residc,main=" ",xlab="Index",ylab="Residuals", pch = "+",ylim=c(-4,4))
+      lines(t,rep(-3,n+12),lty=2,col=1)
+      lines(t,rep(3,n+12),lty=2,col=1)
+      lines(t,rep(-2,n+12),lty=3,col=1)
+      lines(t,rep(2,n+12),lty=3,col=1)
+      dev.off()
 
-        postscript(file = "resid_density.eps",width = w1, height = h11,family = "Times")
-        par(mar=c(5,6,4,1)+.1)
-        plot(densidade,ylab="Density",main=" ",xlab=" ",ylim=c(0,1.15*max(densidade$y)))
-        lines(densidade$x,dnorm(densidade$x),lty=2)
-        legend("topleft",c("Exact distribution of residuals","Normal approximation"),#pch=vpch,
-             pt.bg="white", lty=c(1,2), bty="n",cex=0.35)
+      postscript(file = "resid_density.eps",width = w1, height = h11,family = "Times")
+      par(mar=c(5,6,4,1)+.1)
+      plot(densidade,ylab="Density",main=" ",xlab=" ",ylim=c(0,1.15*max(densidade$y)))
+      lines(densidade$x,dnorm(densidade$x),lty=2)
+      legend("topleft",c("Exact distribution of residuals","Normal approximation"),#pch=vpch,
+           pt.bg="white", lty=c(1,2), bty="n",cex=0.35)
         dev.off()
 
         postscript(file = "res_ACF.eps",width = w1, height = h11,family = "Times")
@@ -388,7 +409,7 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,resid
         pacf(residc,ylab="PACF",xlab="Lag", main="")
         dev.off()
 
-    }else{print="Você não ativou a função gráficos"}
+    }else{print="You have not activated the function to generate the graphs"}
   return(z)
 }
 

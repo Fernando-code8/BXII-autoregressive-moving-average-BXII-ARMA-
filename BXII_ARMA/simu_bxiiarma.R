@@ -1,4 +1,15 @@
-simu.bxiiarma <- function(n,phi=NA,theta=NA, alpha=1,c=1,tau=0.5,freq=12,link="log")
+################################################################################
+# PAPER: Quantile-based dynamic modeling of asymmetric data: a novel Burr XII
+#        approach for positive continuous random variables
+# SECTION: 5. Monte Carlo simulation
+# GOAL: Function to generate random samples of the BXII-ARMA model.
+# AUTHORS: Fernando Jose Monteiro de Araujo, Renata Rojas Guerra and 
+#          Fernando Arturo Pena-Ramirez
+# LAST UPDATE: May 25, 2024
+################################################################################
+
+simu.bxiiarma <- function(n,phi=NA,theta=NA, alpha=1,c=1,tau=0.5,freq=12,
+                          link="log")
 {
   source("bxii-funcs.r")
   if(any(is.na(phi)==F))
@@ -28,7 +39,8 @@ simu.bxiiarma <- function(n,phi=NA,theta=NA, alpha=1,c=1,tau=0.5,freq=12,link="l
   {  
     stats <- make.link(linktemp)
   }else{
-    stop(paste(linktemp, "link not available, available links are \"logit\" and \"cloglog\""))
+    stop(paste(linktemp, "link not available, available links are \"logit\" 
+               and \"cloglog\""))
   } 
   
   link <- structure(list(link = linktemp, 
@@ -51,7 +63,8 @@ simu.bxiiarma <- function(n,phi=NA,theta=NA, alpha=1,c=1,tau=0.5,freq=12,link="l
     
     for(i in (m+1):(n+m))
     {
-      eta[i]  <- alpha + as.numeric(phi%*%ynew[i-ar]) + as.numeric(theta%*%error[i-ma])
+      eta[i]  <- alpha + as.numeric(phi%*%ynew[i-ar]) 
+                 + as.numeric(theta%*%error[i-ma])
       mu[i]   <- linkinv(eta[i])
       y[i]    <- rbxii(1,mu[i],c)
       ynew[i] <- linkfun(y[i])

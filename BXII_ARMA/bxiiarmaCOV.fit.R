@@ -1,7 +1,21 @@
-# Algumas informacoes:
-# diag = 0 : nao plota graficos
-# diag = 1 : plota graficos na tela
-# diga = 2 : gera graficos em pdf e plota graficos na tela
+################################################################################
+# PAPER: Quantile-based dynamic modeling of asymmetric data: a novel Burr XII
+#        approach for positive continuous random variables
+# SECTION: 6. Applications
+# GOAL: Provides functions to fit the BXII-ARMA model with covariates
+# AUTHORS: Fernando Jose Monteiro de Araujo, Renata Rojas Guerra and 
+#          Fernando Arturo Pena-Ramirez
+# LAST UPDATE: May 25, 2024
+################################################################################
+
+################################################################################
+#######     Implementation of the BXII-ARMA MODEL with covariates      #########
+################################################################################
+
+# Some information:
+# diag = 0 : Does not generate graphics
+# diag = 1 : Shows graphics on screen
+# diga = 2 : Generates graphs in PDF and shows them on the screen
 
 bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
                          h=12, diag=0,X = NA,X_hat=NA)
@@ -47,7 +61,7 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
   ynew = linkfun(y) 
   ynew_ar <- suppressWarnings(matrix(ynew,(n-1),max(p,1,na.rm=T)))
   
-  ###########################################################3  
+  ###########################################################
   if(any(is.na(ar)) == F) {
     names_phi <- c(paste("phi", ar, sep = ""))
     Z <- suppressWarnings(matrix(ynew, (n-1), p1)[m:(n-1),])} else {
@@ -60,29 +74,28 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
   
   if(any(is.na(X)) == F){
     names_beta<-c(paste("beta", 1 : ncol(as.matrix(X)), sep = ""))
-    Xm <- X[(m+1):n ]      #############   ???Acho que teria que ser  Xm <- X[m:(n-1), ] para ficar
-    #                                      de acordo com ynew_ar
+    Xm <- X[(m+1):n ]      
     k = ncol(cbind(X))
-    c<-1 ###
+    c<-1 
   } else {
     k = 0 
     X <- matrix(rep(0,n), nrow = n)
     Xm <- NA
-    c<-1 ###
+    c<-1 
   }
   
-  ###FB  recorrences   #*
+  ###FB  recorrences   #
   q_1 <- max(q1, 1)
-  R <- matrix(rep(NA, (n-m)*q_1), ncol = q_1)  # pq precisamos repetir NA (nlinhas*ncol), nesse caso
-  k_i <- q1/q_1                                 # útil para o vetor escore (termo R); vai ser sempre 0 (pois q1 pode ser) ou 1?
-  #                                             # não queremos multip a dim pelo num par med moveis, mas sim por 0 ou 1, ie, ou tem ou não tem
+  R <- matrix(rep(NA, (n-m)*q_1), ncol = q_1)  
+  k_i <- q1/q_1                                
+  #                                            
   
   deta.dalpha <- rep(0, n)
   deta.dbeta <- matrix(0, ncol=max(k,1), nrow=n)
   deta.dphi <- matrix(0, ncol=p1, nrow=n)
   deta.dtheta <- matrix(0, ncol=q_1, nrow=n)
   
-  Xstart <- (cbind(rep(1, (n-m)), Xm, Z))         #Conferir se essa Xm está certa mesmo, pois pode ser isso o erro no BETA-ARMA, USAMOS ELA NO CHUTE....
+  Xstart <- (cbind(rep(1, (n-m)), Xm, Z))         
   Xstart <- matrix(apply(Xstart, 1, na.omit),nrow = (n-m),byrow = T)
   ols <- lm.fit(Xstart, ynew[(m+1) : n])$coef
   initial <- c(rep(0, k+p1+q1+1),1)
@@ -122,7 +135,8 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     Xbeta_ar <- suppressWarnings(matrix(Xbeta, (n-1), max(p, 1, na.rm = T)))
     for(i in (m+1):n)
     {
-      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1),ar] - Xbeta_ar[(i-1),ar])%*%phi + t(theta)%*%error[i-ma]
+      eta[i] <- alpha + Xbeta[i] + (ynew_ar[(i-1),ar] - Xbeta_ar[(i-1),ar])%*%phi 
+                + t(theta)%*%error[i-ma]
       error[i] <- ynew[i] - eta[i] 
     }
     
@@ -147,7 +161,8 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     
     mT <- diag(mu.eta(eta[(m+1):n]))
     
-    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))) #loglik/dmu
+    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)
+                                    *(log(1+y1^c)))/log(1+mu^c))) 
     
     
     Ualpha <- t(v) %*% mT %*% vh
@@ -156,7 +171,9 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     Utheta <- t(rR) %*% mT %*% vh
     
     # derivada em relacao a c
-    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))*((((y1^c)*log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
+    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))*((((y1^c)
+        *log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)*log(1+mu^c)))
+        *(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
     
     Uc <- sum(a)
     
@@ -198,10 +215,8 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
   z$coeff <- coef
   J_inv <- solve(-(opt$hessian))
   z$stderror<-sqrt(diag(J_inv))
-  z$zstat <- abs(z$coef/z$stderror)      # ??? pq módulo aqui? Não seria melhor colocar depois no p-valor?
-  z$pvalues <- 2*(1 - pnorm(z$zstat) )  #2*(1-pt(abs(t_value),df_mod))
-  # z$zstat <- z$coef/z$stderror  
-  # z$pvalues <- 2*(1 - pnorm(abs(z$zstat)) ) 
+  z$zstat <- abs(z$coef/z$stderror)      
+  z$pvalues <- 2*(1 - pnorm(z$zstat) )  
   z$loglik <- opt$value
   z$counts <- as.numeric(opt$counts[1])
   
@@ -218,28 +233,12 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     z$hq <- -2*(z$loglik*(n/(n-m)))+log(log(n))*(z$k)
   }
   
-  # if(any(is.na(X)==F))
-  # {
-  #   z$k<- (p1+q1+k+2)
-  #   z$aic <- -2*(z$loglik)+2*(z$k)
-  #   z$bic <- -2*(z$loglik)+log(n)*(z$k)
-  #   z$hq <- -2*(z$loglik)+log(log(n))*(z$k)
-  # }else{
-  #   z$k<- (p1+q1+2)
-  #   z$aic <- -2*(z$loglik)+2*(z$k)
-  #   z$bic <- -2*(z$loglik)+log(n)*(z$k)
-  #   z$hq <- -2*(z$loglik)+log(log(n))*(z$k)
-  # }
-  # 
   model_presentation <- cbind(round(z$coef,4),round(z$stderror,4),round(z$zstat,4),round(z$pvalues,4))
   colnames(model_presentation)<-c("Estimate","Std. Error","z value","Pr(>|z|)")
   z$model <- model_presentation
   
-  
-  
-  #***************************************************************************************************
-  #Fitted values   (NO REGRESSORS)
-  if(k==0){                                     ##########(NO REGRESSORS)
+  # Fitted values (NO REGRESSORS)
+  if(k==0){                     
     alpha <- as.numeric(coef[1])
     phi <- as.numeric(coef[2:(p1+1)])
     theta <- as.numeric(coef[(p1+2):(p1+q1+1)])
@@ -257,7 +256,6 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     if(q1==0) {theta = as.matrix(0);ma=1}
     for(i in (m+1):n)
     {
-      # etahat[i]<-alpha + (phi%*%ynew[i-ar]) + (theta%*%errorhat[i-ma])
       etahat[i]<-alpha + ynew_ar[(i-1),ar]%*%as.matrix(phi) + (theta%*%errorhat[i-ma])
       errorhat[i]<- ynew[i]-etahat[i] # predictor scale
     }
@@ -281,7 +279,7 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     }
     
     z$forecast <- y_prev[(n+1):(n+h)]
-  } else{                                        ########### ##########(with REGRESSORS)
+  } else{########### (with REGRESSORS) ##########
     X_hat <- as.matrix(X_hat)
     
     alpha <- as.numeric(coef[1])
@@ -296,7 +294,7 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     z$theta <- theta
     z$c <- c
     
-    errorhat<-rep(0,n) # E(error)=0 
+    errorhat<-rep(0,n) 
     etahat<-rep(NA,n)
     
     if(p1==0) {phi = as.matrix(0);ar=1}
@@ -333,17 +331,6 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
       errorhat[n+i] <- 0
     }
     
-    # Xbeta_prev <- X_prev%*%as.matrix(beta)
-    # Xbeta_prev_ar <- suppressWarnings(matrix(Xbeta_prev, (n-1), max(p, 1, na.rm = T)))
-    # 
-    # for(i in 1:h)
-    # {
-    #   ynew_prev[n+i] <- alpha + Xbeta_prev[i] + 
-    #     (ynew_prev[n+i-ar] - Xbeta_prev_ar[n+i-1, ar])%*%as.matrix(phi) +
-    #     (theta%*%errorhat[n+i-ma])
-    #   y_prev[n+i] <- linkinv(ynew_prev[n+i])
-    #   errorhat[n+i] <- 0 
-    # }
     
     z$forecast <- y_prev[(n+1):(n+h)]
     
@@ -355,8 +342,9 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
   residc <- z$residuals 
   
   
-  ###################################################
-  ######### GRAPHICS ################################
+  #####################################################################
+  #####################    GRAPHICS    ################################
+  #####################################################################
   
   if(diag>0)
   {
@@ -393,13 +381,12 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
     
     plot(as.vector(z$fitted[(m+1):n]),as.vector(residc), main=" ", pch = "+",
          xlab="Fitted values",ylab="Residuals")
-    #lines(c(-0.2,1.2),c(-0.2,1.2),lty=2)
-    
+
     
     densidade<-density(residc)
     plot(densidade,ylab="density",main=" ")
     lines(densidade$x,dnorm(densidade$x),lty=2)
-    legend("topleft",c("Exact distribution of residuals","Normal approximation"),#pch=vpch,
+    legend("topleft",c("Exact distribution of residuals","Normal approximation"),
            pt.bg="white", lty=c(1,2), bty="n")
     
     acf(residc,ylab="ACF",xlab="Lag") 
@@ -412,23 +399,13 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
            xlim=c(0.95*min_r,max_r*1.05),
            ylim=c(0.95*min_r,max_r*1.05),
            main="",xlab="Normal quantiles",ylab="Empirical quantiles")
-    #qqnorm(residc,pch=1,frame=T, main = "QQ-plot",
-    #      make.plot = T, lwd=1)
-    #lines(c(-10,10),c(-10,10),lty=2)
-    
+ 
     par(mfrow=c(1,1))
     plot(y,type="l",ylab="Serie",xlab="Time",ylim=c(min(y),max(y)))
     lines(z$fitted,col="blue",lty=2)
     legend("topright",c("Observed data","Predicted median"),#pch=vpch,
            pt.bg="white", lty=c(1,2), bty="n",col=c(1,"blue"))
     
-    # fim<-end(y)[1]+end(y)[2]/12                   
-    # 
-    # y_prev <- ts(y_prev, start=start(y), frequency=frequency(y))
-    # par(mfrow=c(1,1))
-    # plot(y_prev,type="l",col="red", ylim=c(min(y),max(y)),ylab="Serie",xlab="Time")
-    # abline(v=fim,lty=2)
-    # lines(y)
     
     w1<-5
     h1<-4
@@ -533,6 +510,5 @@ bxiiarmaCOV.fit<-function (y, ar = NA, ma = NA, tau = .5,link = "log",
       
     }    
   }  
-  #*****************************************************************************************************
   return(z)
 }
