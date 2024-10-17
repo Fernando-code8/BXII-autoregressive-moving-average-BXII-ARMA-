@@ -164,8 +164,7 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,
     
     mT <- diag(mu.eta(eta[(m+1):n]))
     
-    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)
-                                      *(log(1+y1^c)))/log(1+mu^c))) #loglik/dmu
+    vh <- ((-c*mu^(c-1))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))) #loglik/dmu
     
     Ualpha <- t(v) %*% mT %*% vh
     Ubeta <- t(rM) %*% mT %*% vh
@@ -173,9 +172,7 @@ bxiiarma.fit<-function (y, ar = NA, ma = NA, X = NA,h1=6, tau = .5,diag1=0,
     Utheta <- t(rR) %*% mT %*% vh
   
     # derivada em relacao a c
-    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))      
-                  *((((y1^c)*log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)
-                    *log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
+    a <- as.vector(1/c+(log(y1))-((1-log(1-tau)/log(1+mu^c))*((((y1^c)*log(y1))/(1+y1^c))))-(((mu^c)*log(mu))/((1+mu^c)*log(1+mu^c)))*(1+((log(1-tau)*(log(1+y1^c)))/log(1+mu^c))))
     
     Uc <- sum(a)
     
